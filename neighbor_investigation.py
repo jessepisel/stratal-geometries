@@ -1,11 +1,11 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: ipynb,py:hydrogen
+#     formats: ipynb,py:light
 #     text_representation:
 #       extension: .py
-#       format_name: hydrogen
-#       format_version: '1.3'
+#       format_name: light
+#       format_version: '1.5'
 #       jupytext_version: 1.3.2
 #   kernelspec:
 #     display_name: Python 3
@@ -13,7 +13,6 @@
 #     name: python3
 # ---
 
-# %%
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -26,12 +25,11 @@ from scipy.spatial.distance import pdist, squareform
 import glob
 import warnings
 warnings.filterwarnings('ignore')
-%matplotlib inline
+# %matplotlib inline
 
-# %%
 training_files = sorted(glob.glob(r'F:\Geology\WSGS\Projects\jupyter\*.csv'))
 
-# %%
+# +
 truncation_color = '#ffffbf'
 onlap_color = '#2c7bb6'
 horiz_color = '#d7191c'
@@ -50,7 +48,7 @@ tops_api = pd.read_csv(r"F:\Geology\WSGS\Projects\jupyter\EarlyWSGS\ftunion.csv"
 iterable = ["Kfh",  "Kl", "Tfu"]
 topcombos = list(zip(iterable, iterable[1:]))
 
-# %%
+# +
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 
@@ -228,16 +226,14 @@ for file in training_files:
 ftDF = pd.DataFrame(ft_classes).T
 laDF = pd.DataFrame(lance_classes).T
 #plt.plot(abs(laDF.diff(axis=1)).sum().values)
+# -
 
-# %%
 ftDF = pd.DataFrame(ft_classes).T
 laDF = pd.DataFrame(lance_classes).T
 
-# %%
 laDF.diff(axis=1).astype(bool).sum(axis=0).values[1:]#
 ftDF.diff(axis=1).astype(bool).sum(axis=0).values[1:]
 
-# %%
 ex = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,30,40,50,60,70,80,90,100,200,300]
 plt.figure(figsize=(10,8))
 plt.plot(ex, laDF.diff(axis=1).astype(bool).sum(axis=0).values[1:], marker='o', color='#A6C551', label='Lance', mew=2)
@@ -248,20 +244,17 @@ plt.ylabel('Number of wells with predicted class change')
 plt.xlabel('Number of nearby wells used as features')
 plt.savefig('optimized.pdf')
 
-# %%
 plt.plot(laDF.diff(axis=1).astype(bool).sum(axis=0).values)
 
-# %%
 plt.figure(figsize=(10,10))
 plt.scatter(lancer['x_locs'], lancer['y_locs'], alpha=0.8, c=abs(laDF.diff(axis=1)).sum(axis=1),s=abs(laDF.diff(axis=1)).sum(axis=1)*10, cmap='magma')
 plt.colorbar()
 
-# %%
 plt.figure(figsize=(10,10))
 plt.scatter(ftunion['x_locs'], ftunion['y_locs'], alpha=0.8, c=abs(ftDF.diff(axis=1)).sum(axis=1), s=abs(ftDF.diff(axis=1)).sum(axis=1)*10, cmap='magma')
 plt.colorbar()
 
-# %%
+# +
 fthoriz = ftunion[(ftunion.horiz_prob>0.)]
 
 plt.figure(figsize=(30,10))
@@ -280,7 +273,7 @@ plt.scatter(lancer['x_locs'], lancer['y_locs'], c=lancer['onlap_prob'], cmap=onl
 plt.scatter(lahoriz['x_locs'], lahoriz['y_locs'], c=lahoriz['horiz_prob'], cmap=horizCmap, vmin=0, vmax=1)
 plt.title('lance '+str(no_of_neighbors))
 
-# %%
+# +
 plt.figure(figsize=(30,10))
 plt.subplot(121)
 plt.scatter(ftunion['x_locs'], ftunion['y_locs'], alpha=0.1, c='k')
@@ -296,12 +289,12 @@ plt.scatter(lancer['x_locs'], lancer['y_locs'], c=lancer['trunc_prob']*-1, cmap=
 plt.scatter(lancer['x_locs'], lancer['y_locs'], c=lancer['onlap_prob'], cmap=onlapCmap, vmin=0, vmax=1)
 plt.scatter(lahoriz['x_locs'], lahoriz['y_locs'], c=lahoriz['horiz_prob'], cmap=horizCmap, vmin=0, vmax=1)
 plt.title('lance '+str(no_of_neighbors))
+# -
 
 
-# %%
 accuracy_measured
 
-# %% jupyter={"outputs_hidden": true}
+# + jupyter={"outputs_hidden": true}
 
 
 # run this for all combinations of 2 tops and KNN
@@ -443,7 +436,7 @@ plt.scatter(lahoriz['x_locs'], lahoriz['y_locs'], c=lahoriz['horiz_prob'], cmap=
 plt.title('lance '+str(no_of_neighbors))
 
 
-# %% jupyter={"outputs_hidden": true, "source_hidden": true}
+# + jupyter={"outputs_hidden": true, "source_hidden": true}
 plt.figure(figsize=(10,5))
 plt.subplot(121)
 forts = [ftunion.trunc_prob, ftunion.onlap_prob, ftunion.horiz_prob]
@@ -459,11 +452,11 @@ plt.xlim(0.1,1.1)
 plt.ylim(0,900)
 plt.title('lance prob with '+str(no_of_neighbors)+' neighbors')
 plt.savefig('probabilities_with_'+str(no_of_neighbors)+'_neighbors.jpg')
+# -
 
-# %%
 lan = [lancer.trunc_prob, lancer.onlap_prob, lancer.horiz_prob]
 plt.hist(lan, stacked=True, color=[truncation_color, onlap_color, horiz_color])
 plt.xlim(0.1,1.1)
 plt.title('lance prob with '+str(no_of_neighbors)+' neighbors')
 
-# %%
+

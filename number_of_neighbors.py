@@ -1,11 +1,11 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: ipynb,py:hydrogen
+#     formats: ipynb,py:light
 #     text_representation:
 #       extension: .py
-#       format_name: hydrogen
-#       format_version: '1.3'
+#       format_name: light
+#       format_version: '1.5'
 #       jupytext_version: 1.3.2
 #   kernelspec:
 #     display_name: Python 3
@@ -13,7 +13,7 @@
 #     name: python3
 # ---
 
-# %%
+# +
 import warnings
 from scipy.spatial.distance import pdist, squareform
 import pandas as pd
@@ -34,7 +34,9 @@ def flatten(the_list):
 
 
 NAMES = ["one", "two", "three"]  # this creates dummy NAMES for the formations
-NUMBER_OF_LAYERS = 2  # this is the number of tops you want in your training data
+NUMBER_OF_LAYERS = (
+    2  # this is the number of tops you want in your training data
+)
 SMALLEST = -5
 LARGEST = 12
 STEP = 0.2
@@ -52,7 +54,7 @@ for i in range(400, 1000, 100):
     print(f"STARTING with {no_of_neighbors}")
     for j in np.arange(SMALLEST, LARGEST, STEP):
         rolling = pd.DataFrame()
-        for i in range(len(NAMES[0 : NUMBER_OF_LAYERS - 1])):
+        for i in range(len(NAMES[0: NUMBER_OF_LAYERS - 1])):
             basement = 0.001 + (10 / j) * np.sin(
                 1 - np.arange(0, 40, 0.1) / (j * 10) + 0.001
             )
@@ -61,7 +63,8 @@ for i in range(400, 1000, 100):
             rolling["zero"] = topbasement
             layer_elevation = (
                 0.001
-                + (10 / j) * np.sin(1 - np.arange(0, 40, 0.1) / (j * 10) + 0.001)
+                + (10 / j)
+                * np.sin(1 - np.arange(0, 40, 0.1) / (j * 10) + 0.001)
                 + elevation_random[i]
             )
             layer_elevation = np.where(
@@ -78,13 +81,16 @@ for i in range(400, 1000, 100):
             rolling["ey"] = y * np.cos(j / 2) - x * np.sin(j / 2)
         for k in range(100):
             rolling.iloc[
-                np.random.randint(0, 399), np.random.randint(0, NUMBER_OF_LAYERS - 1)
+                np.random.randint(0, 399),
+                np.random.randint(0, NUMBER_OF_LAYERS - 1),
             ] = 0
         hood = squareform(pdist(rolling.iloc[:, -2:]))
         neighbors = []
-        for i in enumerate(hood.argsort()[0:, 1 : no_of_neighbors + 1]):
+        for i in enumerate(hood.argsort()[0:, 1: no_of_neighbors + 1]):
             selected = (
-                rolling.iloc[hood.argsort()[i[0], 1 : no_of_neighbors + 1], 0:-2]
+                rolling.iloc[
+                    hood.argsort()[i[0], 1: no_of_neighbors + 1], 0:-2
+                ]
                 .stack()
                 .to_frame()
                 .T
@@ -99,12 +105,16 @@ for i in range(400, 1000, 100):
         thicknesses.drop(columns="zero", inplace=True)
         locations = pd.concat((locations, rolling.iloc[:, -2:]))
         df = pd.concat((df, thicknesses))
-    logged = df.apply(np.log)  # take the log of thicknesses for feature engineering
+    logged = df.apply(
+        np.log
+    )  # take the log of thicknesses for feature engineering
     powered = df.apply(
         lambda x: x ** 10
     )  # calculates the power values of thickness for another feature
     at = (
-        pd.concat([df, logged, powered, locations], axis=1, join_axes=[df.index])
+        pd.concat(
+            [df, logged, powered, locations], axis=1, join_axes=[df.index]
+        )
         .dropna()
         .replace(-np.inf, 0)
     )
@@ -120,7 +130,9 @@ for i in range(400, 1000, 100):
     print("normalizing the truncation")
     # NORMALIZING THE DATA
     # normalize the data from 0 to 1
-    normalized_dfa = (at - at.min()) / (at.max() - at.min()).replace(0, 0.00001)
+    normalized_dfa = (at - at.min()) / (at.max() - at.min()).replace(
+        0, 0.00001
+    )
     normalized_locations = (locations - locations.min()) / (
         locations.max() - locations.min()
     )
@@ -135,7 +147,7 @@ for i in range(400, 1000, 100):
     locations = pd.DataFrame()
     for j in np.arange(SMALLEST, LARGEST, STEP):
         rolling = pd.DataFrame()
-        for i in range(len(NAMES[0 : NUMBER_OF_LAYERS - 1])):
+        for i in range(len(NAMES[0: NUMBER_OF_LAYERS - 1])):
             basement = 0.001 + (10 / j) * np.sin(
                 1 - np.arange(0, 40, 0.1) / (j * 10) + 0.001
             )
@@ -143,7 +155,9 @@ for i in range(400, 1000, 100):
             topbasement = np.where(basement > elevation, elevation, basement)
             rolling["zero"] = topbasement
             strat_elevation = np.full(400, elevation_random[i])
-            onlap = np.where(strat_elevation > basement, strat_elevation, basement)
+            onlap = np.where(
+                strat_elevation > basement, strat_elevation, basement
+            )
             layer_elevation = np.where(onlap > elevation, elevation, onlap)
             rolling[NAMES[i]] = layer_elevation
         x = np.arange(0, 40, 0.1)
@@ -156,13 +170,16 @@ for i in range(400, 1000, 100):
             rolling["ey"] = y * np.cos(j / 2) - x * np.sin(j / 2)
         for k in range(100):
             rolling.iloc[
-                np.random.randint(0, 399), np.random.randint(0, NUMBER_OF_LAYERS - 1)
+                np.random.randint(0, 399),
+                np.random.randint(0, NUMBER_OF_LAYERS - 1),
             ] = 0
         hood = squareform(pdist(rolling.iloc[:, -2:]))
         neighbors = []
-        for i in enumerate(hood.argsort()[0:, 1 : no_of_neighbors + 1]):
+        for i in enumerate(hood.argsort()[0:, 1: no_of_neighbors + 1]):
             selected = (
-                rolling.iloc[hood.argsort()[i[0], 1 : no_of_neighbors + 1], 0:-2]
+                rolling.iloc[
+                    hood.argsort()[i[0], 1: no_of_neighbors + 1], 0:-2
+                ]
                 .stack()
                 .to_frame()
                 .T
@@ -195,7 +212,9 @@ for i in range(400, 1000, 100):
     print("normalizing the onlap")
     # NORMALIZING THE DATA
     # normalize the data from 0 to 1
-    normalized_dfo = (ot - ot.min()) / (ot.max() - ot.min()).replace(0, 0.00001)
+    normalized_dfo = (ot - ot.min()) / (ot.max() - ot.min()).replace(
+        0, 0.00001
+    )
     normalized_locations = (locations - locations.min()) / (
         locations.max() - locations.min()
     )
@@ -210,7 +229,7 @@ for i in range(400, 1000, 100):
     locations = pd.DataFrame()
     for j in np.arange(SMALLEST, LARGEST, STEP):
         rolling = pd.DataFrame()
-        for i in range(len(NAMES[0 : NUMBER_OF_LAYERS - 1])):
+        for i in range(len(NAMES[0: NUMBER_OF_LAYERS - 1])):
             basement = np.full(400, 0) - np.random.rand(400) / 100
             elevation = np.full(400, j)
             topbasement = np.where(basement > elevation, elevation, basement)
@@ -230,13 +249,16 @@ for i in range(400, 1000, 100):
             rolling["ey"] = y * np.cos(j / 2) - x * np.sin(j / 2)
         for k in range(100):
             rolling.iloc[
-                np.random.randint(0, 399), np.random.randint(0, NUMBER_OF_LAYERS - 1)
+                np.random.randint(0, 399),
+                np.random.randint(0, NUMBER_OF_LAYERS - 1),
             ] = 0
         hood = squareform(pdist(rolling.iloc[:, -2:]))
         neighbors = []
-        for i in enumerate(hood.argsort()[0:, 1 : no_of_neighbors + 1]):
+        for i in enumerate(hood.argsort()[0:, 1: no_of_neighbors + 1]):
             selected = (
-                rolling.iloc[hood.argsort()[i[0], 1 : no_of_neighbors + 1], 0:-2]
+                rolling.iloc[
+                    hood.argsort()[i[0], 1: no_of_neighbors + 1], 0:-2
+                ]
                 .stack()
                 .to_frame()
                 .T
@@ -269,7 +291,9 @@ for i in range(400, 1000, 100):
     print("normalizing the horizontal strata")
     # NORMALIZING THE DATA
     # normalize the data from 0 to 1
-    normalized_dfh = (hs - hs.min()) / (hs.max() - hs.min()).replace(0, 0.00001)
+    normalized_dfh = (hs - hs.min()) / (hs.max() - hs.min()).replace(
+        0, 0.00001
+    )
     normalized_locations = (locations - locations.min()) / (
         locations.max() - locations.min()
     )
@@ -292,13 +316,4 @@ for i in range(400, 1000, 100):
         + "neighbors.csv"
     )
     print(f"Done with {no_of_neighbors} neighbors")
-
-# %%
-
-# %%
-
-# %%
-
-# %%
-
-# %%
+# -
