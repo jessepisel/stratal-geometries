@@ -13,6 +13,7 @@
 #     name: python3
 # ---
 
+# +
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -24,10 +25,42 @@ import seaborn as sns; sns.set()
 from scipy.spatial.distance import pdist, squareform
 import glob
 import warnings
+from sklearn.neighbors import KNeighborsClassifier
+
 warnings.filterwarnings('ignore')
 # %matplotlib inline
+# -
 
-training_files = sorted(glob.glob(r'F:\Geology\WSGS\Projects\jupyter\*.csv'))
+training_files = glob.glob(r"F:\Geology\WSGS\Projects\jupyter\*.csv")
+print(training_files)
+
+# +
+accuracy_measured = []
+
+for file in training_files:
+    print(f'reading {file[-15:]}')
+    no_of_neighbors = int(file[33:-13])
+    dataset = pd.read_csv(file, index_col=[0])
+    data_subset0 = data.drop(['class'], axis=1)
+
+    # next let's split our toy data into training and test sets, choose how much with test_size of the data becomes the test set
+    X_train, X_test, y_train, y_test = train_test_split(
+        dataset.drop('class', axis=1),
+        dataset['class'],
+        test_size=0.3, #don't forget to change this
+        random_state=86,
+    )
+    neigh = KNeighborsClassifier(algorithm='auto', leaf_size=30, metric='euclidean',
+           metric_params=None, n_jobs=None, n_neighbors=4, p=2,
+           weights='distance')
+    neigh.fit(X_train, y_train)
+    accuracy_measured.append(neigh.score(X_test, y_test))
+print(accuracy_measured)
+# -
+
+plt.plot(accuracy_measured)
+
+# # Hold up below this
 
 # +
 truncation_color = '#ffffbf'
@@ -436,7 +469,7 @@ plt.scatter(lahoriz['x_locs'], lahoriz['y_locs'], c=lahoriz['horiz_prob'], cmap=
 plt.title('lance '+str(no_of_neighbors))
 
 
-# + jupyter={"outputs_hidden": true, "source_hidden": true}
+# + jupyter={"outputs_hidden": true}
 plt.figure(figsize=(10,5))
 plt.subplot(121)
 forts = [ftunion.trunc_prob, ftunion.onlap_prob, ftunion.horiz_prob]

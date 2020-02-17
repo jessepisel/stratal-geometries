@@ -38,15 +38,16 @@ horizCmap = LinearSegmentedColormap.from_list('mycmap', [onlap_color, horiz_colo
 
 
 # %%
-data = pd.read_csv(r'F:\Geology\WSGS\Projects\jupyter\20neighbors.csv', index_col=[0])
-data_subset0 = data.drop(['class'], axis=1)
+#data = pd.read_csv(r'F:\Geology\WSGS\Projects\jupyter\20neighbors.csv', index_col=[0])
+#data_subset0 = data.drop(['class'], axis=1)
 
 # %%
 from sklearn.model_selection import train_test_split
-no_of_neighbors = 20
+no_of_neighbors = 9
 
+# %%
 dataset = pd.read_csv(
-    r"F:/Geology/WSGS/Projects/jupyter/"+str(no_of_neighbors)+"neighbors.csv",
+    r"F:/Geology/WSGS/Projects/jupyter/0"+str(no_of_neighbors)+"neighbors.csv",
     index_col=[0],
 )
 
@@ -56,7 +57,7 @@ from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(
     dataset.drop('class', axis=1),
     dataset['class'],
-    test_size=0.9, #don't forget to change this
+    test_size=0.1, #don't forget to change this
     random_state=86,
 )
 
@@ -67,6 +68,38 @@ neigh = KNeighborsClassifier(algorithm='auto', leaf_size=30, metric='euclidean',
            weights='distance')
 neigh.fit(X_train, y_train)
 neigh.score(X_test, y_test)
+
+
+# %%
+def flatten(container):
+    for i in container:
+        if isinstance(i, (list,tuple)):
+            for j in flatten(i):
+                yield j
+        else:
+            yield i
+
+
+# %%
+initial = ["thickness", "thickness natural log", "thickness power"]
+features = []
+for item in initial:
+    features.append(item)
+    for i in range(1, no_of_neighbors + 1):
+        features.append(item + " neighbor " + str(i))
+features.append(["x location", "y location", "class"])
+flat_features = list(flatten(features))
+
+# %%
+flat_features
+thickened =  flat_features[0:no_of_neighbors+1]
+thickened.append('class')
+logged = flat_features[no_of_neighbors+1:2*no_of_neighbors+2]
+logged.append('class')
+powered = flat_features[2*no_of_neighbors+2:3*no_of_neighbors+3]
+powered.append('class')
+location = ['x location', 'y location', 'class']
+og_thickness = ['thickness', 'class']
 
 # %% jupyter={"source_hidden": true}
 thickened = ['thickness neighbor 1', 'thickness neighbor 2',
@@ -108,7 +141,7 @@ powered = ['thickness power',
 location = ['x location', 'y location', 'class']
 og_thickness = ['thickness', 'class']
 
-# %% jupyter={"outputs_hidden": true, "source_hidden": true}
+# %%
 X_train, X_test, y_train, y_test = train_test_split(
     dataset.drop(thickened, axis=1),
     dataset['class'],
@@ -117,7 +150,8 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 neigh.fit(X_train, y_train)
 thickness_removed = neigh.score(X_test, y_test)
-print(f'Done with thickness. Accuracy is {thickness_removed:.2f}')
+print(f'Done with thickness. Accuracy is {thickness_removed:.3f}')
+
 
 X_train, X_test, y_train, y_test = train_test_split(
     dataset.drop(logged, axis=1),
@@ -157,9 +191,9 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 neigh.fit(X_train, y_train)
 og_t_removed = neigh.score(X_test, y_test)
-print(f'Done with og thickness. Accuracy is {og_t_removed:.2f}')
+print(f'Done with well thickness. Accuracy is {og_t_removed:.2f}')
 
-# %% jupyter={"outputs_hidden": true, "source_hidden": true}
+# %%
 X_train, X_test, y_train, y_test = train_test_split(
     dataset.drop('class', axis=1),
     dataset['class'],
@@ -173,13 +207,11 @@ neigh.fit(X_train, y_train)
 
 
 # %%
-tops_api = pd.read_csv(r"F:\Geology\WSGS\Projects\jupyter\EarlyWSGS\ftunion.csv").fillna(
+tops_api = pd.read_csv(r"F:\Geology\WSGS\Projects\Unconformity or onlap\Python\ftunion.csv").fillna(
     0
 )  # this file is available in the unconformity or onlap folder in the repo
 iterable = ["Kfh",  "Kl", "Tfu"]
 topcombos = list(zip(iterable, iterable[1:]))
-number_of_tops = 2
-no_of_neighbors = 20
 
 #topcombos.append(("Kfh", "Kl"))
 #topcombos.append(("Kl", "Tfu"))
@@ -193,7 +225,7 @@ full_probs = []
 
 for j in enumerate(topcombos):
     print(topcombos[j[0]])
-    tops_api = pd.read_csv(r"F:\Geology\WSGS\Projects\jupyter\EarlyWSGS\ftunion.csv").fillna(
+    tops_api = pd.read_csv(r"F:\Geology\WSGS\Projects\Unconformity or onlap\Python\ftunion.csv").fillna(
         0
     )  # this file is available in the unconformity or onlap folder in the repo
     fmtops = list(topcombos[j[0]])
@@ -255,11 +287,11 @@ for j in enumerate(topcombos):
 normalized_kl = norm_all[0]
 normalized_tfu = norm_all[1]
 
-normalized_kl.columns = data_subset0.columns.values
+normalized_kl.columns = dataset.columns[0:-1].values
 normalized_kl['class'] = results[0]
 normalized_kl['prob'] = probs_all[0]
 
-normalized_tfu.columns = data_subset0.columns.values
+normalized_tfu.columns = dataset.columns[0:-1].values
 normalized_tfu['class'] = results[1]
 normalized_tfu['prob'] = probs_all[1]
 
@@ -276,7 +308,7 @@ df_combined1 = df_combined.append(normalized_tfu, sort=False)
 # %%
 #df_subset = data.sample(5000)
 df_subset1 = df_combined1.drop(['class', 'Formation', 'prob'], axis=1)
-tsne = TSNE(n_components=2, verbose=0.2, perplexity=250, n_iter=500, learning_rate=50,random_state=20) #per=250, iter = 500, lr=50
+tsne = TSNE(n_components=2, verbose=0.2, perplexity=50, n_iter=1500, learning_rate=500,random_state=20) #per=250, iter = 500, lr=50
 tsne_results = tsne.fit_transform(df_subset1)
 
 # %%
@@ -286,7 +318,7 @@ df_combined1['trunc_prob'] = probabilities[:,0]
 df_combined1['onlap_prob'] = probabilities[:,1]
 df_combined1['horiz_prob'] = probabilities[:,2]
 
-# %% jupyter={"outputs_hidden": true, "source_hidden": true}
+# %%
 df_combined1['tsne-2d-one'] = tsne_results[:,0]
 df_combined1['tsne-2d-two'] = tsne_results[:,1]
 #df_combined1['tsne-2d-three'] = tsne_results[:,2]
@@ -304,7 +336,7 @@ sns.scatterplot(
     edgecolor='none',
     vmin=-1, vmax=1
 )
-'''
+
 sns.scatterplot(
     x=df_combined1["tsne-2d-one"], y=df_combined1["tsne-2d-two"],
     hue=df_combined1["onlap_prob"],
@@ -315,7 +347,7 @@ sns.scatterplot(
     #alpha=0.5,
     edgecolor='none'
 )
-'''
+
 horizontals = df_combined1[(df_combined1.horiz_prob>0.)]
 sns.scatterplot(
     x=horizontals["tsne-2d-one"], y=horizontals["tsne-2d-two"],
@@ -331,8 +363,8 @@ sns.scatterplot(
 )
 plt.xlabel('t-SNE Dimension 1')
 plt.ylabel('t-SNE Dimension 2')
-plt.xlim(-7,7)
-plt.ylim(-13,13)
+#plt.xlim(-7,7)
+#plt.ylim(-13,13)
 #plt.savefig('tsne.pdf', bbox_inches='tight')
 
 
@@ -357,6 +389,7 @@ from shapely.geometry import Point
 import fiona
 
 # %%
+'''
 geometry = [Point(xy) for xy in zip(ftunion.x_locs, ftunion.y_locs)]
 crs = {"init": "epsg:3732"}
 geo_df = GeoDataFrame(ftunion, crs={"init": "epsg:4326"}, geometry=geometry)
@@ -372,6 +405,7 @@ geo_df.to_file(
     driver="ESRI Shapefile",
     filename=r"F:\Geology\WSGS\Projects\Unconformity or onlap\predictions\shapefiles\lance_KNN_predictions_prob.shp",
 )
+'''
 
 # %%
 # run this for all combinations of 2 tops and KNN
@@ -395,7 +429,7 @@ plt.subplot(122)
 plt.scatter(ftunion['x_locs'], ftunion['y_locs'], alpha=0.1, c='k')
 plt.scatter(ftunion['x_locs'], ftunion['y_locs'], c=ftunion['onlap_prob'], cmap=onlapCmap)
 plt.colorbar()
-plt.savefig('tfu_probabilities.pdf')
+#plt.savefig('tfu_probabilities.pdf')
 
 
 
@@ -413,9 +447,9 @@ plt.subplot(122)
 plt.scatter(lancer['x_locs'], lancer['y_locs'], alpha=0.1, c='k')
 plt.scatter(lancer['x_locs'], lancer['y_locs'], c=lancer['onlap_prob'], cmap=onlapCmap)
 plt.colorbar()
-plt.savefig('kla_probabilites.pdf')
+#plt.savefig('kla_probabilites.pdf')
 
-# %%
+# %% jupyter={"source_hidden": true, "outputs_hidden": true}
 test = df_combined1[df_combined1.Formation=='Kl']
 test['t'] = full_probs[0][:,0]
 test['o'] = full_probs[0][:,1]

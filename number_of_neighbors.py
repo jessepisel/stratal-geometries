@@ -13,6 +13,8 @@
 #     name: python3
 # ---
 
+# # This is for building the training data with different numbers of neighbors
+
 # +
 import warnings
 from scipy.spatial.distance import pdist, squareform
@@ -22,15 +24,13 @@ import numpy as np
 warnings.filterwarnings("ignore")
 
 
-def flatten(the_list):
-    """Flatten a list to one level."""
-    returned_list = []
-    for thing in the_list:
-        if isinstance(thing, list):
-            returned_list.extend(flatten(thing))
+def flatten(container):
+    for i in container:
+        if isinstance(i, (list,tuple)):
+            for j in flatten(i):
+                yield j
         else:
-            returned_list.append(i)
-    return returned_list
+            yield i
 
 
 NAMES = ["one", "two", "three"]  # this creates dummy NAMES for the formations
@@ -40,7 +40,8 @@ NUMBER_OF_LAYERS = (
 SMALLEST = -5
 LARGEST = 12
 STEP = 0.2
-for i in range(400, 1000, 100):
+NEIGHBORS_TO_TEST = [13,14,15,16,17,18,19,20,25,30,35,40,45,50,75,100,150,200,250,300,350,399]
+for i in NEIGHBORS_TO_TEST:
 
     no_of_neighbors = i
 
@@ -50,22 +51,40 @@ for i in range(400, 1000, 100):
     elevation_random = sorted(
         np.random.uniform(SMALLEST, LARGEST, NUMBER_OF_LAYERS - 1)
     )
-
+    print("Getting the features")
+    initial = ["thickness", "thickness natural log", "thickness power"]
+    features = []
+    for item in initial:
+        features.append(item)
+        for i in range(1, no_of_neighbors + 1):
+            features.append(item + " neighbor " + str(i))
+    features.append(["x location", "y location", "class"])
+    flat_features = list(flatten(features))
+    
+    
     print(f"STARTING with {no_of_neighbors}")
     for j in np.arange(SMALLEST, LARGEST, STEP):
         rolling = pd.DataFrame()
-        for i in range(len(NAMES[0: NUMBER_OF_LAYERS - 1])):
+        j = np.round(j, decimals=3)+0.5
+        elevation_random = sorted(
+            np.random.uniform(SMALLEST, LARGEST, NUMBER_OF_LAYERS - 1)
+        )
+        for i in range(len(NAMES[0 : NUMBER_OF_LAYERS - 1])):
             basement = 0.001 + (10 / j) * np.sin(
                 1 - np.arange(0, 40, 0.1) / (j * 10) + 0.001
-            )
-            elevation = np.full(400, j)
+            )+np.random.rand(400)
+            elevation = np.full(400, j)+np.random.rand(400)
             topbasement = np.where(basement > elevation, elevation, basement)
+
             rolling["zero"] = topbasement
             layer_elevation = (
                 0.001
                 + (10 / j)
                 * np.sin(1 - np.arange(0, 40, 0.1) / (j * 10) + 0.001)
-                + elevation_random[i]
+                + abs(elevation_random[i])+np.random.rand(400)
+            )
+            layer_elevation = np.where(
+                layer_elevation < basement, basement, layer_elevation
             )
             layer_elevation = np.where(
                 layer_elevation > elevation, elevation, layer_elevation
@@ -86,10 +105,10 @@ for i in range(400, 1000, 100):
             ] = 0
         hood = squareform(pdist(rolling.iloc[:, -2:]))
         neighbors = []
-        for i in enumerate(hood.argsort()[0:, 1: no_of_neighbors + 1]):
+        for i in enumerate(hood.argsort()[0:, 1 : no_of_neighbors + 1]):
             selected = (
                 rolling.iloc[
-                    hood.argsort()[i[0], 1: no_of_neighbors + 1], 0:-2
+                    hood.argsort()[i[0], 1 : no_of_neighbors + 1], 0:-2
                 ]
                 .stack()
                 .to_frame()
@@ -118,15 +137,6 @@ for i in range(400, 1000, 100):
         .dropna()
         .replace(-np.inf, 0)
     )
-    print("Getting the features")
-    initial = ["thickness", "thickness natural log", "thickness power"]
-    features = []
-    for item in initial:
-        features.append(item)
-        for i in range(1, no_of_neighbors + 1):
-            features.append(item + " neighbor " + str(i))
-    features.append(["x location", "y location", "class"])
-    flat_features = flatten(features)
     print("normalizing the truncation")
     # NORMALIZING THE DATA
     # normalize the data from 0 to 1
@@ -147,16 +157,23 @@ for i in range(400, 1000, 100):
     locations = pd.DataFrame()
     for j in np.arange(SMALLEST, LARGEST, STEP):
         rolling = pd.DataFrame()
-        for i in range(len(NAMES[0: NUMBER_OF_LAYERS - 1])):
+        j = np.round(j, decimals=3)+0.5
+        elevation_random = sorted(
+        np.random.uniform(SMALLEST, LARGEST, NUMBER_OF_LAYERS - 1)
+        )
+        for i in range(len(NAMES[0 : NUMBER_OF_LAYERS - 1])):
             basement = 0.001 + (10 / j) * np.sin(
                 1 - np.arange(0, 40, 0.1) / (j * 10) + 0.001
-            )
-            elevation = np.full(400, j)
+            )+np.random.rand(400)
+            elevation = np.full(400, j)+np.random.rand(400)
             topbasement = np.where(basement > elevation, elevation, basement)
             rolling["zero"] = topbasement
-            strat_elevation = np.full(400, elevation_random[i])
+            strat_elevation = np.full(400, elevation_random[i])+np.random.rand(400)
             onlap = np.where(
                 strat_elevation > basement, strat_elevation, basement
+            )
+            layer_elevation = np.where(
+                layer_elevation < basement, basement, layer_elevation
             )
             layer_elevation = np.where(onlap > elevation, elevation, onlap)
             rolling[NAMES[i]] = layer_elevation
@@ -175,10 +192,10 @@ for i in range(400, 1000, 100):
             ] = 0
         hood = squareform(pdist(rolling.iloc[:, -2:]))
         neighbors = []
-        for i in enumerate(hood.argsort()[0:, 1: no_of_neighbors + 1]):
+        for i in enumerate(hood.argsort()[0:, 1 : no_of_neighbors + 1]):
             selected = (
                 rolling.iloc[
-                    hood.argsort()[i[0], 1: no_of_neighbors + 1], 0:-2
+                    hood.argsort()[i[0], 1 : no_of_neighbors + 1], 0:-2
                 ]
                 .stack()
                 .to_frame()
@@ -191,6 +208,7 @@ for i in range(400, 1000, 100):
         neighborhood = pd.concat([rolling.iloc[:, :-2], frame], axis=1)
         thicknesses = neighborhood.diff(axis=1)
         thicknesses[thicknesses < 0] = 0
+
         thicknesses.drop(columns="zero", inplace=True)
         locations = pd.concat((locations, rolling.iloc[:, -2:]))
         df_onlap = pd.concat((df_onlap, thicknesses))
@@ -229,15 +247,19 @@ for i in range(400, 1000, 100):
     locations = pd.DataFrame()
     for j in np.arange(SMALLEST, LARGEST, STEP):
         rolling = pd.DataFrame()
-        for i in range(len(NAMES[0: NUMBER_OF_LAYERS - 1])):
-            basement = np.full(400, 0) - np.random.rand(400) / 100
-            elevation = np.full(400, j)
+        j = j+0.5
+        elevation_random = sorted(
+                np.random.uniform(SMALLEST, LARGEST, NUMBER_OF_LAYERS - 1)
+            )
+        for i in range(len(NAMES[0 : NUMBER_OF_LAYERS - 1])):
+            strat_elevation = np.full(400, elevation_random[i])+np.random.rand(400)
+            basement = strat_elevation - abs(np.random.uniform(SMALLEST, LARGEST, NUMBER_OF_LAYERS-1) + np.random.rand(400))
+            elevation = np.full(400, j)+np.random.rand(400)
             topbasement = np.where(basement > elevation, elevation, basement)
-            rolling["zero"] = topbasement
-            strat_elevation = np.full(400, elevation_random[i])
             layer_elevation = np.where(
                 strat_elevation > elevation, elevation, strat_elevation
             )
+            rolling["zero"] = topbasement
             rolling[NAMES[i]] = layer_elevation
         x = np.arange(0, 40, 0.1)
         y = np.random.randint(0, 10, len(x))
@@ -254,10 +276,10 @@ for i in range(400, 1000, 100):
             ] = 0
         hood = squareform(pdist(rolling.iloc[:, -2:]))
         neighbors = []
-        for i in enumerate(hood.argsort()[0:, 1: no_of_neighbors + 1]):
+        for i in enumerate(hood.argsort()[0:, 1 : no_of_neighbors + 1]):
             selected = (
                 rolling.iloc[
-                    hood.argsort()[i[0], 1: no_of_neighbors + 1], 0:-2
+                    hood.argsort()[i[0], 1 : no_of_neighbors + 1], 0:-2
                 ]
                 .stack()
                 .to_frame()
@@ -317,3 +339,5 @@ for i in range(400, 1000, 100):
     )
     print(f"Done with {no_of_neighbors} neighbors")
 # -
+
+
