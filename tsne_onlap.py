@@ -43,11 +43,11 @@ horizCmap = LinearSegmentedColormap.from_list('mycmap', [onlap_color, horiz_colo
 
 # %%
 from sklearn.model_selection import train_test_split
-no_of_neighbors = 9
+no_of_neighbors =5
 
 # %%
 dataset = pd.read_csv(
-    r"F:/Geology/WSGS/Projects/jupyter/0"+str(no_of_neighbors)+"neighbors.csv",
+    r"F:/Geology/WSGS/Projects/jupyter/00"+str(no_of_neighbors)+"neighbors.csv",
     index_col=[0],
 )
 
@@ -101,46 +101,6 @@ powered.append('class')
 location = ['x location', 'y location', 'class']
 og_thickness = ['thickness', 'class']
 
-# %% jupyter={"source_hidden": true}
-thickened = ['thickness neighbor 1', 'thickness neighbor 2',
-       'thickness neighbor 3', 'thickness neighbor 4', 'thickness neighbor 5',
-       'thickness neighbor 6', 'thickness neighbor 7', 'thickness neighbor 8',
-       'thickness neighbor 9', 'thickness neighbor 10',
-       'thickness neighbor 11', 'thickness neighbor 12',
-       'thickness neighbor 13', 'thickness neighbor 14',
-       'thickness neighbor 15', 'thickness neighbor 16',
-       'thickness neighbor 17', 'thickness neighbor 18',
-       'thickness neighbor 19', 'thickness neighbor 20', 'class']
-logged = ['thickness natural log', 'thickness natural log neighbor 1',
-       'thickness natural log neighbor 2', 'thickness natural log neighbor 3',
-       'thickness natural log neighbor 4', 'thickness natural log neighbor 5',
-       'thickness natural log neighbor 6', 'thickness natural log neighbor 7',
-       'thickness natural log neighbor 8', 'thickness natural log neighbor 9',
-       'thickness natural log neighbor 10',
-       'thickness natural log neighbor 11',
-       'thickness natural log neighbor 12',
-       'thickness natural log neighbor 13',
-       'thickness natural log neighbor 14',
-       'thickness natural log neighbor 15',
-       'thickness natural log neighbor 16',
-       'thickness natural log neighbor 17',
-       'thickness natural log neighbor 18',
-       'thickness natural log neighbor 19',
-       'thickness natural log neighbor 20', 'class']
-powered = ['thickness power',
-       'thickness power neighbor 1', 'thickness power neighbor 2',
-       'thickness power neighbor 3', 'thickness power neighbor 4',
-       'thickness power neighbor 5', 'thickness power neighbor 6',
-       'thickness power neighbor 7', 'thickness power neighbor 8',
-       'thickness power neighbor 9', 'thickness power neighbor 10',
-       'thickness power neighbor 11', 'thickness power neighbor 12',
-       'thickness power neighbor 13', 'thickness power neighbor 14',
-       'thickness power neighbor 15', 'thickness power neighbor 16',
-       'thickness power neighbor 17', 'thickness power neighbor 18',
-       'thickness power neighbor 19', 'thickness power neighbor 20', 'class']
-location = ['x location', 'y location', 'class']
-og_thickness = ['thickness', 'class']
-
 # %%
 X_train, X_test, y_train, y_test = train_test_split(
     dataset.drop(thickened, axis=1),
@@ -150,7 +110,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 neigh.fit(X_train, y_train)
 thickness_removed = neigh.score(X_test, y_test)
-print(f'Done with thickness. Accuracy is {thickness_removed:.3f}')
+print(f'Without thickness accuracy is {thickness_removed:.3f}')
 
 
 X_train, X_test, y_train, y_test = train_test_split(
@@ -161,7 +121,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 neigh.fit(X_train, y_train)
 ln_removed = neigh.score(X_test, y_test)
-print(f'Done with natural log. Accuracy is {ln_removed:.2f}')
+print(f'Without natural log. Accuracy is {ln_removed:.2f}')
 
 X_train, X_test, y_train, y_test = train_test_split(
     dataset.drop(powered, axis=1),
@@ -171,7 +131,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 neigh.fit(X_train, y_train)
 power_removed = neigh.score(X_test, y_test)
-print(f'Done with power. Accuracy is {power_removed:.2f}')
+print(f'Without power accuracy is {power_removed:.2f}')
 
 X_train, X_test, y_train, y_test = train_test_split(
     dataset.drop(location, axis=1),
@@ -181,7 +141,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 neigh.fit(X_train, y_train)
 location_removed = neigh.score(X_test, y_test)
-print(f'Done with location. Accuracy is {location_removed:.2f}')
+print(f'Without location accuracy is {location_removed:.2f}')
 
 X_train, X_test, y_train, y_test = train_test_split(
     dataset.drop(og_thickness, axis=1),
@@ -200,9 +160,9 @@ X_train, X_test, y_train, y_test = train_test_split(
     test_size=0.1, #don't forget to change this
     random_state=86,
 )
-neigh = KNeighborsClassifier(algorithm='auto', leaf_size=30, metric='euclidean',
-           metric_params=None, n_jobs=None, n_neighbors=4, p=2,
-           weights='distance')
+neigh = KNeighborsClassifier()#algorithm='auto', leaf_size=30, metric='euclidean',
+           #metric_params=None, n_jobs=None, n_neighbors=4, p=2,
+           #weights='distance')
 neigh.fit(X_train, y_train)
 
 
@@ -388,32 +348,23 @@ from geopandas import GeoDataFrame
 from shapely.geometry import Point
 import fiona
 
-# %%
-'''
-geometry = [Point(xy) for xy in zip(ftunion.x_locs, ftunion.y_locs)]
-crs = {"init": "epsg:3732"}
-geo_df = GeoDataFrame(ftunion, crs={"init": "epsg:4326"}, geometry=geometry)
-geo_df.to_file(
-    driver="ESRI Shapefile",
-    filename=r"F:\Geology\WSGS\Projects\Unconformity or onlap\predictions\shapefiles\ftunion_KNN_predictions_prob.shp",
-)
-
-geometry = [Point(xy) for xy in zip(lancer.x_locs, lancer.y_locs)]
-crs = {"init": "epsg:3732"}
-geo_df = GeoDataFrame(lancer, crs={"init": "epsg:4326"}, geometry=geometry)
-geo_df.to_file(
-    driver="ESRI Shapefile",
-    filename=r"F:\Geology\WSGS\Projects\Unconformity or onlap\predictions\shapefiles\lance_KNN_predictions_prob.shp",
-)
-'''
-
-# %%
-# run this for all combinations of 2 tops and KNN
-from sklearn.neighbors import KNeighborsClassifier
-import itertools
-from geopandas import GeoDataFrame
-from shapely.geometry import Point
-import fiona
+# %% [markdown]
+# geometry = [Point(xy) for xy in zip(ftunion.x_locs, ftunion.y_locs)]
+# crs = {"init": "epsg:3732"}
+# geo_df = GeoDataFrame(ftunion, crs={"init": "epsg:4326"}, geometry=geometry)
+# geo_df.to_file(
+#     driver="ESRI Shapefile",
+#     filename=r"F:\Geology\WSGS\Projects\Unconformity or onlap\predictions\shapefiles\ftunion_KNN_predictions_prob.shp",
+# )
+#
+# geometry = [Point(xy) for xy in zip(lancer.x_locs, lancer.y_locs)]
+# crs = {"init": "epsg:3732"}
+# geo_df = GeoDataFrame(lancer, crs={"init": "epsg:4326"}, geometry=geometry)
+# geo_df.to_file(
+#     driver="ESRI Shapefile",
+#     filename=r"F:\Geology\WSGS\Projects\Unconformity or onlap\predictions\shapefiles\lance_KNN_predictions_prob.shp",
+# )
+#
 
 # %%
 fthoriz = ftunion[(ftunion.horiz_prob>0.)]
@@ -449,13 +400,27 @@ plt.scatter(lancer['x_locs'], lancer['y_locs'], c=lancer['onlap_prob'], cmap=onl
 plt.colorbar()
 #plt.savefig('kla_probabilites.pdf')
 
-# %% jupyter={"source_hidden": true, "outputs_hidden": true}
-test = df_combined1[df_combined1.Formation=='Kl']
-test['t'] = full_probs[0][:,0]
-test['o'] = full_probs[0][:,1]
-test['h'] = full_probs[0][:,2]
-trunc = test[(test.o <.6)&(test['class']==1)]
-onl = test[test.o <0.6]
-hor = test[test.h <0.6]
+# %% [markdown]
+# test = df_combined1[df_combined1.Formation=='Kl']
+# test['t'] = full_probs[0][:,0]
+# test['o'] = full_probs[0][:,1]
+# test['h'] = full_probs[0][:,2]
+# trunc = test[(test.o <.6)&(test['class']==1)]
+# onl = test[test.o <0.6]
+# hor = test[test.h <0.6]
+
+# %%
+fig, ax = plt.subplots()
+scatter = ax.scatter(lancer['x_locs'], lancer.y_locs, c=lancer['class'])
+legend1 = ax.legend(*scatter.legend_elements(),
+                    loc="lower left", title="Classes")
+ax.add_artist(legend1)
+
+# %%
+fig, ax = plt.subplots()
+scatter = ax.scatter(ftunion['x_locs'], ftunion.y_locs, c=ftunion['class'])
+legend1 = ax.legend(*scatter.legend_elements(),
+                    loc="lower left", title="Classes")
+ax.add_artist(legend1)
 
 # %%

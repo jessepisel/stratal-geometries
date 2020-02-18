@@ -29,7 +29,7 @@ import scikitplot as skplt
 # %matplotlib inline
 
 # +
-no_of_neighbors = 5
+no_of_neighbors = 1
 
 dataset = pd.read_csv(
     r"F:/Geology/WSGS/Projects/jupyter/0"
@@ -63,13 +63,15 @@ neigh.fit(X_train, y_train)
 
 # +
 grid_params = {
-    "n_neighbors": [1, 4, 5, 11, 19, 25],
+    "n_neighbors": [5,10,15,20,30,40,50,100],
     "weights": ["uniform", "distance"],
     "metric": ["euclidean", "manhattan"],
+    "algorithm": ["ball_tree", 'kd_tree', 'brute'],
+    "leaf_size": [10,30],
 }
 
 gs = GridSearchCV(
-    KNeighborsClassifier(), grid_params, verbose=1, cv=2, n_jobs=5
+    KNeighborsClassifier(), grid_params, verbose=8, cv=5, n_jobs=5
 )
 gs_results = gs.fit(X_train, y_train)
 # -
@@ -80,22 +82,13 @@ gs_results.best_estimator_
 
 gs_results.best_params_
 
-neigh = KNeighborsClassifier(
-    algorithm="auto",
-    leaf_size=30,
-    metric="euclidean",
-    metric_params=None,
-    n_jobs=None,
-    n_neighbors=4,
-    p=2,
-    weights="distance",
-)
+neigh = KNeighborsClassifier(**gs.best_params_)
 neigh.fit(X_train, y_train)
 
 y_pred = neigh.predict(X_test)
 
 
-skplt.metrics.plot_confusion_matrix(y_test, y_pred, normalize=False)
+skplt.metrics.plot_confusion_matrix(y_test, y_pred, normalize=True)
 # plt.savefig('confusion matrix figure.pdf')
 
 # run this for all combinations of 2 tops and KNN
@@ -190,3 +183,5 @@ for j in enumerate(topcombos):
     #    + str(topcombos[j[0]])
     #    + "_knn_predictions.shp",
     #)
+
+

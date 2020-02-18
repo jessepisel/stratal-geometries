@@ -23,6 +23,10 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D 
 import seaborn as sns; sns.set()
 from scipy.spatial.distance import pdist, squareform
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import GridSearchCV
+
 import glob
 import warnings
 from sklearn.neighbors import KNeighborsClassifier
@@ -36,29 +40,48 @@ print(training_files)
 
 # +
 accuracy_measured = []
+num_neighbors = []
+grid_params = {
+    "n_neighbors": [5,10,20,40,80],
+    "weights": ["uniform", "distance"],
+    "metric": ["euclidean", "manhattan"],
+    #"algorithm": ["ball_tree", 'kd_tree', 'brute'],
+    #"leaf_size": [10,30],
+}
 
 for file in training_files:
     print(f'reading {file[-15:]}')
     no_of_neighbors = int(file[33:-13])
     dataset = pd.read_csv(file, index_col=[0])
-    data_subset0 = data.drop(['class'], axis=1)
-
-    # next let's split our toy data into training and test sets, choose how much with test_size of the data becomes the test set
+    data_subset0 = dataset.drop(['class'], axis=1)
+    
     X_train, X_test, y_train, y_test = train_test_split(
         dataset.drop('class', axis=1),
         dataset['class'],
-        test_size=0.3, #don't forget to change this
+        test_size=0.2, #don't forget to change this
         random_state=86,
     )
-    neigh = KNeighborsClassifier(algorithm='auto', leaf_size=30, metric='euclidean',
-           metric_params=None, n_jobs=None, n_neighbors=4, p=2,
-           weights='distance')
-    neigh.fit(X_train, y_train)
-    accuracy_measured.append(neigh.score(X_test, y_test))
-print(accuracy_measured)
+    gs = GridSearchCV(
+        KNeighborsClassifier(), grid_params, verbose=8, cv=5, n_jobs=5
+    )
+    gs_results = gs.fit(X_train, y_train)
+    neigh = KNeighborsClassifier(**gs.best_params_)
+    
+    cved = cross_val_score(neigh, dataset.drop('class', axis=1),
+        dataset['class'], cv=10, scoring='accuracy')
+    accuracy_measured.append(cved)
+    num_neighbors.append(file[-15:-13])
 # -
 
-plt.plot(accuracy_measured)
+mean_accuracy = []
+for i in enumerate(accuracy_measured):
+    plt.plot(accuracy_measured[i[0]], label=str(num_neighbors[i[0]])+' Neighbors')
+    mean_accuracy.append(accuracy_measured[i[0]].mean().round(4))
+    plt.legend()
+
+plt.plot(num_neighbors, mean_accuracy)
+plt.xlabel('number of neighboring wells')
+plt.ylabel('mean cross-validated accuracy')
 
 # # Hold up below this
 

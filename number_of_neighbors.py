@@ -37,10 +37,10 @@ NAMES = ["one", "two", "three"]  # this creates dummy NAMES for the formations
 NUMBER_OF_LAYERS = (
     2  # this is the number of tops you want in your training data
 )
-SMALLEST = -5
+SMALLEST = -6
 LARGEST = 12
-STEP = 0.2
-NEIGHBORS_TO_TEST = [13,14,15,16,17,18,19,20,25,30,35,40,45,50,75,100,150,200,250,300,350,399]
+STEP = 2 #0.2
+NEIGHBORS_TO_TEST = [0,1,2,3,4,5,10,15,20,25,35,40,50,60,75,85,95,125,150,200,300,399]
 for i in NEIGHBORS_TO_TEST:
 
     no_of_neighbors = i
@@ -63,6 +63,7 @@ for i in NEIGHBORS_TO_TEST:
     
     
     print(f"STARTING with {no_of_neighbors}")
+    print('starting with truncation')
     for j in np.arange(SMALLEST, LARGEST, STEP):
         rolling = pd.DataFrame()
         j = np.round(j, decimals=3)+0.5
@@ -70,18 +71,19 @@ for i in NEIGHBORS_TO_TEST:
             np.random.uniform(SMALLEST, LARGEST, NUMBER_OF_LAYERS - 1)
         )
         for i in range(len(NAMES[0 : NUMBER_OF_LAYERS - 1])):
-            basement = 0.001 + (10 / j) * np.sin(
-                1 - np.arange(0, 40, 0.1) / (j * 10) + 0.001
-            )+np.random.rand(400)
-            elevation = np.full(400, j)+np.random.rand(400)
+            
+            basement = 0.001 + (10) * np.sin(
+                1 - np.arange(0, 40, 0.1) / (j*2) + 0.001
+            )+np.random.rand(400)/5
+            elevation = np.full(400, basement.max()+np.random.uniform(basement.min()/2,basement.max()/64,1))+np.random.rand(400)/5
             topbasement = np.where(basement > elevation, elevation, basement)
 
             rolling["zero"] = topbasement
             layer_elevation = (
                 0.001
-                + (10 / j)
-                * np.sin(1 - np.arange(0, 40, 0.1) / (j * 10) + 0.001)
-                + abs(elevation_random[i])+np.random.rand(400)
+                + (10)
+                * np.sin(1 - np.arange(0, 40, 0.1) / (j*2) + 0.001)
+                + abs(elevation_random[i])+np.random.rand(400)/5
             )
             layer_elevation = np.where(
                 layer_elevation < basement, basement, layer_elevation
@@ -152,7 +154,7 @@ for i in NEIGHBORS_TO_TEST:
     normalized_dfa["ey"] = y
 
     np.random.seed(19)
-
+    print('starting with onlap')
     df_onlap = pd.DataFrame()
     locations = pd.DataFrame()
     for j in np.arange(SMALLEST, LARGEST, STEP):
@@ -162,13 +164,13 @@ for i in NEIGHBORS_TO_TEST:
         np.random.uniform(SMALLEST, LARGEST, NUMBER_OF_LAYERS - 1)
         )
         for i in range(len(NAMES[0 : NUMBER_OF_LAYERS - 1])):
-            basement = 0.001 + (10 / j) * np.sin(
-                1 - np.arange(0, 40, 0.1) / (j * 10) + 0.001
-            )+np.random.rand(400)
-            elevation = np.full(400, j)+np.random.rand(400)
+            basement = 0.001 + (10) * np.sin(
+                1 - np.arange(0, 40, 0.1) / (j * 2) + 0.001
+            )+np.random.rand(400)/5
+            elevation = np.full(400, basement.max()+np.random.uniform(basement.min()/2,basement.max()/64,1))+np.random.rand(400)/5
             topbasement = np.where(basement > elevation, elevation, basement)
             rolling["zero"] = topbasement
-            strat_elevation = np.full(400, elevation_random[i])+np.random.rand(400)
+            strat_elevation = np.full(400, elevation_random[i])+np.random.rand(400)/5
             onlap = np.where(
                 strat_elevation > basement, strat_elevation, basement
             )
@@ -242,7 +244,7 @@ for i in NEIGHBORS_TO_TEST:
     normalized_dfo["ey"] = y
 
     np.random.seed(19)
-
+    print('starting the horizontal')
     df_horizontal = pd.DataFrame()
     locations = pd.DataFrame()
     for j in np.arange(SMALLEST, LARGEST, STEP):
@@ -252,9 +254,9 @@ for i in NEIGHBORS_TO_TEST:
                 np.random.uniform(SMALLEST, LARGEST, NUMBER_OF_LAYERS - 1)
             )
         for i in range(len(NAMES[0 : NUMBER_OF_LAYERS - 1])):
-            strat_elevation = np.full(400, elevation_random[i])+np.random.rand(400)
-            basement = strat_elevation - abs(np.random.uniform(SMALLEST, LARGEST, NUMBER_OF_LAYERS-1) + np.random.rand(400))
-            elevation = np.full(400, j)+np.random.rand(400)
+            strat_elevation = np.full(400, elevation_random[i])+np.random.rand(400)/5
+            basement = strat_elevation - abs(np.random.uniform(SMALLEST, LARGEST, NUMBER_OF_LAYERS-1) + np.random.rand(400)/5)
+            elevation = np.full(400, strat_elevation+elevation_random)+np.random.rand(400)/5
             topbasement = np.where(basement > elevation, elevation, basement)
             layer_elevation = np.where(
                 strat_elevation > elevation, elevation, strat_elevation
