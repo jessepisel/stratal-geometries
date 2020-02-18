@@ -62,7 +62,7 @@ for file in training_files:
         random_state=86,
     )
     gs = GridSearchCV(
-        KNeighborsClassifier(), grid_params, verbose=8, cv=5, n_jobs=5
+        KNeighborsClassifier(), grid_params, verbose=8, cv=5, n_jobs=7
     )
     gs_results = gs.fit(X_train, y_train)
     neigh = KNeighborsClassifier(**gs.best_params_)
@@ -70,7 +70,7 @@ for file in training_files:
     cved = cross_val_score(neigh, dataset.drop('class', axis=1),
         dataset['class'], cv=10, scoring='accuracy')
     accuracy_measured.append(cved)
-    num_neighbors.append(file[-15:-13])
+    num_neighbors.append(file[-16:-13])
 # -
 
 mean_accuracy = []
