@@ -29,7 +29,7 @@ import scikitplot as skplt
 # %matplotlib inline
 
 # +
-no_of_neighbors = 1
+no_of_neighbors = 25
 
 dataset = pd.read_csv(
     r"F:/Geology/WSGS/Projects/jupyter/0"
@@ -63,15 +63,15 @@ neigh.fit(X_train, y_train)
 
 # +
 grid_params = {
-    "n_neighbors": [5,10,15,20,30,40,50,100],
+    "n_neighbors": [5,10,15,20,30,40,50,80,100],
     "weights": ["uniform", "distance"],
     "metric": ["euclidean", "manhattan"],
     "algorithm": ["ball_tree", 'kd_tree', 'brute'],
-    "leaf_size": [10,30],
+    "leaf_size": [10,20,30],
 }
 
 gs = GridSearchCV(
-    KNeighborsClassifier(), grid_params, verbose=8, cv=5, n_jobs=5
+    KNeighborsClassifier(), grid_params, verbose=8, cv=5, n_jobs=-1
 )
 gs_results = gs.fit(X_train, y_train)
 # -

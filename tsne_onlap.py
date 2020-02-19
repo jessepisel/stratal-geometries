@@ -32,9 +32,9 @@ horiz_color = '#d7191c'
 
 from matplotlib.colors import LinearSegmentedColormap
 
-truncCmap = LinearSegmentedColormap.from_list('mycmap', [truncation_color, onlap_color])
-onlapCmap = LinearSegmentedColormap.from_list('mycmap', [truncation_color, onlap_color])
-horizCmap = LinearSegmentedColormap.from_list('mycmap', [onlap_color, horiz_color])
+truncCmap = LinearSegmentedColormap.from_list('mycmap', ['#ffffff', truncation_color])
+onlapCmap = LinearSegmentedColormap.from_list('mycmap', ['#ffffff', onlap_color])
+horizCmap = LinearSegmentedColormap.from_list('mycmap', ['#ffffff', horiz_color])
 
 
 # %%
@@ -43,11 +43,11 @@ horizCmap = LinearSegmentedColormap.from_list('mycmap', [onlap_color, horiz_colo
 
 # %%
 from sklearn.model_selection import train_test_split
-no_of_neighbors =5
+no_of_neighbors =25
 
 # %%
 dataset = pd.read_csv(
-    r"F:/Geology/WSGS/Projects/jupyter/00"+str(no_of_neighbors)+"neighbors.csv",
+    r"F:/Geology/WSGS/Projects/jupyter/0"+str(no_of_neighbors)+"neighbors.csv",
     index_col=[0],
 )
 
@@ -63,9 +63,9 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 # %%
 from sklearn.neighbors import KNeighborsClassifier
-neigh = KNeighborsClassifier(algorithm='auto', leaf_size=30, metric='euclidean',
-           metric_params=None, n_jobs=None, n_neighbors=4, p=2,
-           weights='distance')
+neigh = KNeighborsClassifier(algorithm='ball_tree', leaf_size=10, metric='manhattan',
+                     metric_params=None, n_jobs=None, n_neighbors=5, p=2,
+                     weights='distance')
 neigh.fit(X_train, y_train)
 neigh.score(X_test, y_test)
 
@@ -160,9 +160,9 @@ X_train, X_test, y_train, y_test = train_test_split(
     test_size=0.1, #don't forget to change this
     random_state=86,
 )
-neigh = KNeighborsClassifier()#algorithm='auto', leaf_size=30, metric='euclidean',
-           #metric_params=None, n_jobs=None, n_neighbors=4, p=2,
-           #weights='distance')
+neigh = KNeighborsClassifier(algorithm='ball_tree', leaf_size=10, metric='manhattan',
+                     metric_params=None, n_jobs=None, n_neighbors=5, p=2,
+                     weights='distance')
 neigh.fit(X_train, y_train)
 
 
@@ -287,7 +287,7 @@ plt.figure(figsize=(10,10))
 # 0 is truncation, 1 is onlap, 2 is horizontal
 sns.scatterplot(
     x=df_combined1["tsne-2d-one"], y=df_combined1["tsne-2d-two"],
-    hue=df_combined1["trunc_prob"]*-1,
+    hue=df_combined1["trunc_prob"],
     style=df_combined1['Formation'],
     palette=truncCmap,
     data=df_combined1,
@@ -367,23 +367,86 @@ import fiona
 #
 
 # %%
-fthoriz = ftunion[(ftunion.horiz_prob>0.)]
+plt.figure(figsize=(15,15))
 
-plt.figure(figsize=(30,10))
-plt.subplot(121)
-plt.scatter(ftunion['x_locs'], ftunion['y_locs'], alpha=0.1, c='k')
-plt.scatter(ftunion['x_locs'], ftunion['y_locs'], c=ftunion['trunc_prob']*-1, cmap=truncCmap, vmin=-1, vmax=0)
+plt.scatter(lancer['x_locs'], lancer['y_locs'], c=lancer['trunc_prob'], cmap=truncCmap, vmin=0, vmax=1)
+plt.savefig('lance_1.pdf')
+plt.clf()
+plt.scatter(lancer['x_locs'], lancer['y_locs'], c=lancer['onlap_prob'], cmap=onlapCmap, vmin=0, vmax=1)
+plt.savefig('lance_2.pdf')
+plt.clf()
+plt.scatter(lancer['x_locs'], lancer['y_locs'], c=lancer['horiz_prob'], cmap=horizCmap, vmin=0, vmax=1)
+plt.savefig('lance_2.pdf')
+
+# %%
+plt.figure(figsize=(15,15))
+
+plt.scatter(ftunion['x_locs'], ftunion['y_locs'], c=ftunion['trunc_prob'], cmap=truncCmap, vmin=0, vmax=1)
+plt.savefig('union_1.pdf')
+plt.clf()
 plt.scatter(ftunion['x_locs'], ftunion['y_locs'], c=ftunion['onlap_prob'], cmap=onlapCmap, vmin=0, vmax=1)
-plt.scatter(fthoriz['x_locs'], fthoriz['y_locs'], c=fthoriz['horiz_prob'], cmap=horizCmap, vmin=0, vmax=1)
-plt.colorbar()
-plt.subplot(122)
-plt.scatter(ftunion['x_locs'], ftunion['y_locs'], alpha=0.1, c='k')
-plt.scatter(ftunion['x_locs'], ftunion['y_locs'], c=ftunion['onlap_prob'], cmap=onlapCmap)
-plt.colorbar()
-#plt.savefig('tfu_probabilities.pdf')
+plt.savefig('union_2.pdf')
+plt.clf()
+plt.scatter(ftunion['x_locs'], ftunion['y_locs'], c=ftunion['horiz_prob'], cmap=horizCmap, vmin=0, vmax=1)
+plt.savefig('Union_3.pdf')
+
+# %%
+import matplotlib.pyplot as plt,numpy as np
+
+def gauplot(centers, radiuses, xr=None, yr=None):
+        nx, ny = 1000.,1000.
+        xgrid, ygrid = np.mgrid[xr[0]:xr[1]:(xr[1]-xr[0])/nx,yr[0]:yr[1]:(yr[1]-yr[0])/ny]
+        im = xgrid*0 + np.nan
+        xs = np.array([np.nan])
+        ys = np.array([np.nan])
+        fis = np.concatenate((np.linspace(-np.pi,np.pi,100), [np.nan]) )
+        cmap = plt.cm.gray
+        cmap.set_bad(truncCmap)
+        thresh = 3
+        for curcen,currad in zip(centers,radiuses):
+                curim=(((xgrid-curcen[0])**2+(ygrid-curcen[1])**2)**.5)/currad*thresh
+                im[curim<thresh]=np.exp(-.5*curim**2)[curim<thresh]
+                xs = np.append(xs, curcen[0] + currad * np.cos(fis))
+                ys = np.append(ys, curcen[1] + currad * np.sin(fis))
+        plt.imshow(im.T, cmap=cmap, extent=xr+yr)
+        plt.plot(xs, ys, 'r-')
+gauplot([(0,0)], [1], [-1,10], [-1,10])
+
+# %%
+import ternary
+fig, tax = ternary.figure(scale=1)
+fig.set_size_inches(5, 4.5)
+
+tax.scatter(lancer[['trunc_prob', 'onlap_prob', 'horiz_prob']].values)
+tax.left_axis_label("Truncation Probability", fontsize=12, offset=0.08)
+tax.right_axis_label("Onlap Probability", fontsize=12, offset=0.08)
+tax.bottom_axis_label("Horizontal Probability", fontsize=12, offset=-0.08)
+tax.gridlines(multiple=20)
+tax.get_axes().axis('off')
+
+tax.boundary(linewidth=1)
+tax.gridlines(multiple=0.10, color="gray")
+tax.ticks(axis='lbr', linewidth=1, multiple=0.20)
+tax.get_axes().axis('off')
 
 
+# %%
+!pip install plotly
 
+# %%
+
+
+import plotly.io as pio
+pio.renderers.default = "browser"
+
+
+# %%
+import plotly.express as px
+px.scatter_ternary(lancer, a="horiz_prob", b="trunc_prob", c="onlap_prob", color="prob", color_continuous_scale='fall')
+
+
+# %%
+lancer.head()
 
 # %%
 lahoriz = lancer[(lancer.horiz_prob>0.)]
