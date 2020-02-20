@@ -296,6 +296,15 @@ sns.scatterplot(
     edgecolor='none',
     vmin=-1, vmax=1
 )
+plt.xlim(-45,45)
+plt.ylim(-45,45)
+plt.xlabel('t-SNE Dimension 1')
+plt.ylabel('t-SNE Dimension 2')
+plt.savefig('tsne_trunc.pdf')
+
+
+# %%
+plt.figure(figsize=(10,10))
 
 sns.scatterplot(
     x=df_combined1["tsne-2d-one"], y=df_combined1["tsne-2d-two"],
@@ -304,11 +313,20 @@ sns.scatterplot(
     palette=onlapCmap,
     data=df_combined1,
     legend=None,
-    #alpha=0.5,
+    alpha=0.8,
     edgecolor='none'
 )
+plt.xlabel('t-SNE Dimension 1')
+plt.ylabel('t-SNE Dimension 2')
+plt.xlim(-45,45)
+plt.ylim(-45,45)
+plt.savefig('tsne_onlap.pdf')
 
+
+# %%
 horizontals = df_combined1[(df_combined1.horiz_prob>0.)]
+plt.figure(figsize=(10,10))
+
 sns.scatterplot(
     x=horizontals["tsne-2d-one"], y=horizontals["tsne-2d-two"],
     hue=horizontals["horiz_prob"],
@@ -316,13 +334,16 @@ sns.scatterplot(
     palette=horizCmap,
     data=horizontals,
     legend=None,
-    alpha=1,
+    alpha=0.8,
     edgecolor='none',
     vmin=0,
     vmax=1
 )
 plt.xlabel('t-SNE Dimension 1')
 plt.ylabel('t-SNE Dimension 2')
+plt.xlim(-45,45)
+plt.ylim(-45,45)
+plt.savefig('tsne_horiz.pdf')
 #plt.xlim(-7,7)
 #plt.ylim(-13,13)
 #plt.savefig('tsne.pdf', bbox_inches='tight')
@@ -367,67 +388,59 @@ import fiona
 #
 
 # %%
-plt.figure(figsize=(15,15))
+plt.figure(figsize=(10,10))
 
 plt.scatter(lancer['x_locs'], lancer['y_locs'], c=lancer['trunc_prob'], cmap=truncCmap, vmin=0, vmax=1)
+plt.xlim(-108.88, -107.35)
+plt.ylim(40.97, 42.3)
 plt.savefig('lance_1.pdf')
 plt.clf()
 plt.scatter(lancer['x_locs'], lancer['y_locs'], c=lancer['onlap_prob'], cmap=onlapCmap, vmin=0, vmax=1)
+plt.xlim(-108.88, -107.35)
+plt.ylim(40.97, 42.3)
 plt.savefig('lance_2.pdf')
 plt.clf()
 plt.scatter(lancer['x_locs'], lancer['y_locs'], c=lancer['horiz_prob'], cmap=horizCmap, vmin=0, vmax=1)
+plt.xlim(-108.88, -107.35)
+plt.ylim(40.97, 42.3)
 plt.savefig('lance_2.pdf')
 
 # %%
-plt.figure(figsize=(15,15))
+plt.figure(figsize=(10,10))
 
 plt.scatter(ftunion['x_locs'], ftunion['y_locs'], c=ftunion['trunc_prob'], cmap=truncCmap, vmin=0, vmax=1)
+plt.xlim(-108.88, -107.35)
+plt.ylim(40.97, 42.3)
 plt.savefig('union_1.pdf')
 plt.clf()
 plt.scatter(ftunion['x_locs'], ftunion['y_locs'], c=ftunion['onlap_prob'], cmap=onlapCmap, vmin=0, vmax=1)
+plt.xlim(-108.88, -107.35)
+plt.ylim(40.97, 42.3)
 plt.savefig('union_2.pdf')
 plt.clf()
 plt.scatter(ftunion['x_locs'], ftunion['y_locs'], c=ftunion['horiz_prob'], cmap=horizCmap, vmin=0, vmax=1)
+plt.xlim(-108.88, -107.35)
+plt.ylim(40.97, 42.3)
 plt.savefig('Union_3.pdf')
-
-# %%
-import matplotlib.pyplot as plt,numpy as np
-
-def gauplot(centers, radiuses, xr=None, yr=None):
-        nx, ny = 1000.,1000.
-        xgrid, ygrid = np.mgrid[xr[0]:xr[1]:(xr[1]-xr[0])/nx,yr[0]:yr[1]:(yr[1]-yr[0])/ny]
-        im = xgrid*0 + np.nan
-        xs = np.array([np.nan])
-        ys = np.array([np.nan])
-        fis = np.concatenate((np.linspace(-np.pi,np.pi,100), [np.nan]) )
-        cmap = plt.cm.gray
-        cmap.set_bad(truncCmap)
-        thresh = 3
-        for curcen,currad in zip(centers,radiuses):
-                curim=(((xgrid-curcen[0])**2+(ygrid-curcen[1])**2)**.5)/currad*thresh
-                im[curim<thresh]=np.exp(-.5*curim**2)[curim<thresh]
-                xs = np.append(xs, curcen[0] + currad * np.cos(fis))
-                ys = np.append(ys, curcen[1] + currad * np.sin(fis))
-        plt.imshow(im.T, cmap=cmap, extent=xr+yr)
-        plt.plot(xs, ys, 'r-')
-gauplot([(0,0)], [1], [-1,10], [-1,10])
 
 # %%
 import ternary
 fig, tax = ternary.figure(scale=1)
-fig.set_size_inches(5, 4.5)
+fig.set_size_inches(3, 3)
 
-tax.scatter(lancer[['trunc_prob', 'onlap_prob', 'horiz_prob']].values)
+tax.scatter(lancer[['trunc_prob', 'onlap_prob', 'horiz_prob']].values, marker='o', alpha=0.6, c='black', s=10)
+tax.scatter(ftunion[['trunc_prob', 'onlap_prob', 'horiz_prob']].values, marker='x', alpha=0.6, c='black', s=10)
 tax.left_axis_label("Truncation Probability", fontsize=12, offset=0.08)
 tax.right_axis_label("Onlap Probability", fontsize=12, offset=0.08)
 tax.bottom_axis_label("Horizontal Probability", fontsize=12, offset=-0.08)
-tax.gridlines(multiple=20)
+#tax.gridlines(multiple=180)
 tax.get_axes().axis('off')
 
 tax.boundary(linewidth=1)
-tax.gridlines(multiple=0.10, color="gray")
+tax.gridlines(multiple=0.20, color="gray")
 tax.ticks(axis='lbr', linewidth=1, multiple=0.20)
 tax.get_axes().axis('off')
+plt.savefig('ternary.pdf')
 
 
 # %%

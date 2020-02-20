@@ -89,7 +89,7 @@ y_pred = neigh.predict(X_test)
 
 
 skplt.metrics.plot_confusion_matrix(y_test, y_pred, normalize=True)
-# plt.savefig('confusion matrix figure.pdf')
+plt.savefig('confusion matrix figure.pdf')
 
 # run this for all combinations of 2 tops and KNN
 for j in enumerate(topcombos):
