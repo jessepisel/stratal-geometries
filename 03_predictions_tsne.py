@@ -13,6 +13,9 @@
 #     name: python3
 # ---
 
+# # This notebook makes predictions
+# It reads in the optimal number of adjacent wells training file, trains the classifier, investigates which features appear to be the most important to the classifier, reads in the subsurface dataset, makes predictions, plots the predictions in embedded T-SNE space, and then saves the spatial location of the predictions for each formation.
+
 import ternary
 import pandas as pd
 import seaborn as sns
@@ -27,7 +30,20 @@ from geopandas import GeoDataFrame
 from shapely.geometry import Point
 sns.set()
 
+
+def flatten(container):
+    "Flattens lists"
+    for i in container:
+        if isinstance(i, (list, tuple)):
+            for j in flatten(i):
+                yield j
+        else:
+            yield i
+
+
 # %matplotlib inline
+
+# Define some colors and colormaps
 
 # +
 TRUNCATION_COLOR = "#ffffbf"
@@ -38,13 +54,10 @@ HORIZ_COLOR = "#d7191c"
 truncCmap = LinearSegmentedColormap.from_list("mycmap", ["#ffffff", TRUNCATION_COLOR])
 onlapCmap = LinearSegmentedColormap.from_list("mycmap", ["#ffffff", ONLAP_COLOR])
 horizCmap = LinearSegmentedColormap.from_list("mycmap", ["#ffffff", HORIZ_COLOR])
-
-
-# +
-# data = pd.read_csv(r'F:\Geology\WSGS\Projects\jupyter\20neighbors.csv', index_col=[0])
-# data_subset0 = data.drop(['class'], axis=1)
 # -
 
+
+# Set the number of adjacent wells and read in the correct training dataset then split it
 
 NO_OF_NEIGHBORS = 25
 
@@ -64,6 +77,8 @@ X_train, X_test, y_train, y_test = train_test_split(
 # -
 
 
+# Train the classifier with optimal parameters
+
 NEIGH = KNeighborsClassifier(
     algorithm="ball_tree",
     leaf_size=10,
@@ -77,16 +92,7 @@ NEIGH = KNeighborsClassifier(
 NEIGH.fit(X_train, y_train)
 NEIGH.score(X_test, y_test)
 
-
-def flatten(container):
-    "Flattens lists"
-    for i in container:
-        if isinstance(i, (list, tuple)):
-            for j in flatten(i):
-                yield j
-        else:
-            yield i
-
+# Investigate which features are the most important for high accuracy in the classification
 
 INITIAL = ["thickness", "thickness natural log", "thickness power"]
 FEATURES = []
@@ -106,11 +112,13 @@ POWERED.append("class")
 LOCATION = ["x location", "y location", "class"]
 OG_THICKNESS = ["thickness", "class"]
 
+# Drop each feature group and retrain the classifier
+
 # +
 X_train, X_test, y_train, y_test = train_test_split(
     DATASET.drop(THICKENED, axis=1),
     DATASET["class"],
-    test_size=0.1,  # don't forget to change this
+    test_size=0.2, 
     random_state=86,
 )
 NEIGH.fit(X_train, y_train)
@@ -121,7 +129,7 @@ print(f"Without thickness accuracy is {THICKNESS_REMOVED:.3f}")
 X_train, X_test, y_train, y_test = train_test_split(
     DATASET.drop(LOGGED, axis=1),
     DATASET["class"],
-    test_size=0.1,  # don't forget to change this
+    test_size=0.2,  
     random_state=86,
 )
 NEIGH.fit(X_train, y_train)
@@ -131,7 +139,7 @@ print(f"Without natural log. Accuracy is {LN_REMOVED:.2f}")
 X_train, X_test, y_train, y_test = train_test_split(
     DATASET.drop(POWERED, axis=1),
     DATASET["class"],
-    test_size=0.1,  # don't forget to change this
+    test_size=0.2,  
     random_state=86,
 )
 NEIGH.fit(X_train, y_train)
@@ -141,7 +149,7 @@ print(f"Without power accuracy is {POWER_REMOVED:.2f}")
 X_train, X_test, y_train, y_test = train_test_split(
     DATASET.drop(LOCATION, axis=1),
     DATASET["class"],
-    test_size=0.1,  # don't forget to change this
+    test_size=0.2,  
     random_state=86,
 )
 NEIGH.fit(X_train, y_train)
@@ -151,13 +159,15 @@ print(f"Without location accuracy is {LOCATION_REMOVED:.2f}")
 X_train, X_test, y_train, y_test = train_test_split(
     DATASET.drop(OG_THICKNESS, axis=1),
     DATASET["class"],
-    test_size=0.1,  # don't forget to change this
+    test_size=0.2,  
     random_state=86,
 )
 NEIGH.fit(X_train, y_train)
 OG_T_REMOVED = NEIGH.score(X_test, y_test)
 print(f"Done with well thickness. Accuracy is {OG_T_REMOVED:.2f}")
 # -
+
+# Now retrain the classifier again to make predictions on the subsurface dataset
 
 X_train, X_test, y_train, y_test = train_test_split(
     DATASET.drop("class", axis=1),
@@ -178,6 +188,8 @@ NEIGH = KNeighborsClassifier(
 NEIGH.fit(X_train, y_train)
 
 
+# Read in the subsurface dataset and create a list of the tops
+
 # +
 TOPS_API = pd.read_csv(
     r"F:\Geology\WSGS\Projects\Unconformity or onlap\Python\FTUNION.csv"
@@ -192,6 +204,7 @@ TOPCOMBOS = list(zip(ITERABLE, ITERABLE[1:]))
 # -
 
 # ## Making predictions on the subsurface dataset
+# This runs the subsurface dataset through feature engineering and makes predictions for both the Lance and Fort Union formations
 
 # +
 # run this for all combinations of 2 tops and KNN
@@ -261,6 +274,9 @@ for j in enumerate(TOPCOMBOS):
     PROBS_ALL.append(probs)
     RESULTS.append(well_preds)
     NORM_ALL.append(normalized_rw)
+# -
+
+# Data organization and sorting into the different formations
 
 # +
 NORMALIZED_KL = NORM_ALL[0]
@@ -295,6 +311,8 @@ tsne = TSNE(
     random_state=20,
 )  # per=250, iter = 500, lr=50
 TSNE_RESULTS = tsne.fit_transform(DF_SUBSET1)
+
+# Split out the three different classes and plot them up with their probabilities of each class
 
 # +
 PROBABILITIES = np.vstack(FULL_PROBS)
@@ -400,7 +418,7 @@ DF_COMBINED1["api"] = API
 FTUNION = DF_COMBINED1[DF_COMBINED1["Formation"] == "Tfu"]
 LANCER = DF_COMBINED1[DF_COMBINED1["Formation"] == "Kl"]
 
-# Now we want to save the predictions as a shapefile
+# Now we want to save the predictions as a shapefile, these are the shapefiles used in the final figures
 
 # +
 geometry = [Point(xy) for xy in zip(FTUNION.x_locs, FTUNION.y_locs)]
