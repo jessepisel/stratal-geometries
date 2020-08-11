@@ -36,7 +36,7 @@ warnings.filterwarnings("ignore")
 
 # point this to the directory with the generated training data
 # with the different number of adjacent wells
-TRAINING_FILES = glob.glob(r"F:\Geology\WSGS\Projects\jupyter\*.csv")
+TRAINING_FILES = glob.glob(r"PATH/TO/DIR/*.csv") # If you don't change this it won't run
 
 # +
 ACCURACY_MEASURED = []  # for the cross-validation accuracy

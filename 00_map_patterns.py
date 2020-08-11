@@ -17,7 +17,6 @@
 
 # ### This notebook creates ambiguous map patterns from both onlap and truncated stratal geometries
 
-# +
 # some imports, using verde to grid
 import pandas as pd
 import numpy as np
@@ -25,7 +24,6 @@ import matplotlib.pyplot as plt
 import verde as vd
 
 # %matplotlib inline
-# -
 
 # ## Here we make some data with angular unconformity and onlap
 
@@ -130,12 +128,14 @@ plt.title("B")
 
 # ## now let's grid the data using Verde and plot it up
 
+# %%capture
 spline = vd.Spline()
 spline.fit(
     (DF.iloc[2000:2400, -2] * 10, DF.iloc[2000:2400, -1] * 10),
     ANGULAR_THICKNESSES.iloc[2000:2400, 2] * 100,
 )
 AUIGRID = spline.grid(spacing=1, data_names=["thickness"])
+
 AUIGRID.thickness.plot.pcolormesh(cmap="magma", vmin=0, vmax=70)
 plt.title("Angular Unconformity Isochore")
 

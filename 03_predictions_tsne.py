@@ -62,8 +62,9 @@ horizCmap = LinearSegmentedColormap.from_list("mycmap", ["#ffffff", HORIZ_COLOR]
 NO_OF_NEIGHBORS = 25
 
 # +
+# Dataset inside the training folder at https://osf.io/a6cwh/
 DATASET = pd.read_csv(
-    r"F:/Geology/WSGS/Projects/jupyter/0" + str(NO_OF_NEIGHBORS) + "neighbors.csv",
+    str(NO_OF_NEIGHBORS) + "neighbors.csv",
     index_col=[0],
 )
 
@@ -71,7 +72,7 @@ DATASET = pd.read_csv(
 X_train, X_test, y_train, y_test = train_test_split(
     DATASET.drop("class", axis=1),
     DATASET["class"],
-    test_size=0.1,  # don't forget to change this
+    test_size=0.2,  
     random_state=86,
 )
 # -
@@ -172,7 +173,7 @@ print(f"Done with well thickness. Accuracy is {OG_T_REMOVED:.2f}")
 X_train, X_test, y_train, y_test = train_test_split(
     DATASET.drop("class", axis=1),
     DATASET["class"],
-    test_size=0.1,  # don't forget to change this
+    test_size=0.2,  
     random_state=86,
 )
 NEIGH = KNeighborsClassifier(
@@ -190,24 +191,20 @@ NEIGH.fit(X_train, y_train)
 
 # Read in the subsurface dataset and create a list of the tops
 
-# +
+# Dataset at https://osf.io/a6cwh/
 TOPS_API = pd.read_csv(
-    r"F:\Geology\WSGS\Projects\Unconformity or onlap\Python\FTUNION.csv"
+    r"subsurface_data.csv"
 ).fillna(
     0
-)  # this file is available in the unconformity or onlap folder in the repo
+)  
 ITERABLE = ["Kfh", "Kl", "Tfu"]
 TOPCOMBOS = list(zip(ITERABLE, ITERABLE[1:]))
-
-# TOPCOMBOS.append(("Kfh", "Kl"))
-# TOPCOMBOS.append(("Kl", "Tfu"))
-# -
 
 # ## Making predictions on the subsurface dataset
 # This runs the subsurface dataset through feature engineering and makes predictions for both the Lance and Fort Union formations
 
 # +
-# run this for all combinations of 2 tops and KNN
+# Dataset at https://osf.io/a6cwh/
 RESULTS = []
 NORM_ALL = []
 PROBS_ALL = []
@@ -216,10 +213,10 @@ FULL_PROBS = []
 for j in enumerate(TOPCOMBOS):
     print(TOPCOMBOS[j[0]])
     TOPS_API = pd.read_csv(
-        r"F:\Geology\WSGS\Projects\Unconformity or onlap\Python\FTUNION.csv"
+        r"subsurface_data.csv"
     ).fillna(
         0
-    )  # this file is available in the unconformity or onlap folder in the repo
+    )  
     fmtops = list(TOPCOMBOS[j[0]])
     fmtops.extend(["x", "y"])
     tops = TOPS_API[fmtops]
@@ -309,7 +306,7 @@ tsne = TSNE(
     n_iter=1500,
     learning_rate=500,
     random_state=20,
-)  # per=250, iter = 500, lr=50
+)  
 TSNE_RESULTS = tsne.fit_transform(DF_SUBSET1)
 
 # Split out the three different classes and plot them up with their probabilities of each class
@@ -324,12 +321,14 @@ DF_COMBINED1["horiz_prob"] = PROBABILITIES[:, 2]
 
 # First for truncation
 
+# +
 DF_COMBINED1["tsne-2d-one"] = TSNE_RESULTS[:, 0]
 DF_COMBINED1["tsne-2d-two"] = TSNE_RESULTS[:, 1]
-# DF_COMBINED1['tsne-2d-three'] = TSNE_RESULTS[:,2]
 color_pals = ["#ffffbf", "#2c7bb6", "#d7191c"]
-plt.figure(figsize=(10, 10))
+
 # 0 is truncation, 1 is onlap, 2 is horizontal
+
+plt.figure(figsize=(10, 10))
 sns.scatterplot(
     x=DF_COMBINED1["tsne-2d-one"],
     y=DF_COMBINED1["tsne-2d-two"],
@@ -348,6 +347,7 @@ plt.ylim(-45, 45)
 plt.xlabel("t-SNE Dimension 1")
 plt.ylabel("t-SNE Dimension 2")
 # plt.savefig('tsne_trunc.pdf')
+# -
 
 
 # Now for onlap
@@ -439,7 +439,7 @@ geo_df.to_file(
 
 # -
 
-# Finally we want to make a ternary diagram of the prediction PROBABILITIES
+# Finally we want to make a ternary diagram of the prediction probabilities
 
 # +
 

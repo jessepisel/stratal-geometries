@@ -15,6 +15,8 @@
 
 # # This is for creating the training data with different numbers of adjacent wells
 # It will write 22 `csv` files to the directory for the varying numbers of adjacent wells. Similar to `01_training_data_generation.ipynb` but with more adjacent wells in the feature set.
+#
+# These datasets can be downloaded from https://osf.io/a6cwh/ inside the `Training Datasets` folder
 
 import warnings
 from scipy.spatial.distance import pdist, squareform
@@ -366,4 +368,3 @@ for i in NEIGHBORS_TO_TEST:
     print(f"saving the training data for {no_of_neighbors}")
     dataset.to_csv(str(no_of_neighbors) + "neighbors.csv")
     print(f"Done with {no_of_neighbors} neighbors")
-# -
