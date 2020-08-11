@@ -40,12 +40,12 @@ SECTIONS = gpd.read_file(r"base_data\shapefiles\crossection.shp",)
 DST_CRS = "EPSG:4326"
 
 with rasterio.open(r"base_data\lance2864.tif") as src:
-    transform, width, height = calculate_default_transform(
+    TRANSFORM, WIDTH, HEIGHT = calculate_default_transform(
         src.crs, DST_CRS, src.width, src.height, *src.bounds
     )
     kwargs = src.meta.copy()
     kwargs.update(
-        {"crs": DST_CRS, "transform": transform, "width": width, "height": height}
+        {"crs": DST_CRS, "transform": TRANSFORM, "width": WIDTH, "height": HEIGHT}
     )
 
     with rasterio.open(r"base_data\lance2864_reproject.tif", "w", **kwargs) as dst:
@@ -55,18 +55,18 @@ with rasterio.open(r"base_data\lance2864.tif") as src:
                 destination=rasterio.band(dst, i),
                 src_transform=src.transform,
                 src_crs=src.crs,
-                dst_transform=transform,
+                dst_transform=TRANSFORM,
                 DST_CRS=DST_CRS,
                 resampling=Resampling.nearest,
             )
 
 with rasterio.open(r"base_data\ftunion2864.tif") as src:
-    transform, width, height = calculate_default_transform(
+    TRANSFORM, WIDTH, HEIGHT = calculate_default_transform(
         src.crs, DST_CRS, src.width, src.height, *src.bounds
     )
     kwargs = src.meta.copy()
     kwargs.update(
-        {"crs": DST_CRS, "transform": transform, "width": width, "height": height}
+        {"crs": DST_CRS, "transform": TRANSFORM, "width": WIDTH, "height": HEIGHT}
     )
 
     with rasterio.open(r"base_data\ftunion2864_reproject.tif", "w", **kwargs) as dst:
@@ -76,7 +76,7 @@ with rasterio.open(r"base_data\ftunion2864.tif") as src:
                 destination=rasterio.band(dst, i),
                 src_transform=src.transform,
                 src_crs=src.crs,
-                dst_transform=transform,
+                dst_transform=TRANSFORM,
                 DST_CRS=DST_CRS,
                 resampling=Resampling.nearest,
             )
