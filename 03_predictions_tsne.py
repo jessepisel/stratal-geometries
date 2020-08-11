@@ -252,8 +252,8 @@ for j in enumerate(TOPCOMBOS):
         pd.concat(
             [thicknesses, real_world_log, real_world_pow, locations],
             axis=1,
-            join_axes=[thicknesses.index],
         )
+        .reindex(thicknesses.index)
         .dropna()
         .replace(-np.inf, 0)
     )

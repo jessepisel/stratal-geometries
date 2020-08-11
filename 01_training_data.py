@@ -18,15 +18,12 @@
 #
 # These datasets can be downloaded from https://osf.io/a6cwh/ inside the `Training Datasets` folder
 
-import warnings
 from scipy.spatial.distance import pdist, squareform
 import pandas as pd
 import numpy as np
 
+
 # +
-warnings.filterwarnings("ignore")
-
-
 def flatten(container):
     "Flattens lists"
     for i in container:
@@ -162,7 +159,8 @@ for i in NEIGHBORS_TO_TEST:
         lambda x: x ** 10
     )  # calculates the power values of thickness for another feature
     at = (
-        pd.concat([df, logged, powered, locations], axis=1, join_axes=[df.index])
+        pd.concat([df, logged, powered, locations], axis=1)
+        .reindex(df.index)
         .dropna()
         .replace(-np.inf, 0)
     )
@@ -255,8 +253,9 @@ for i in NEIGHBORS_TO_TEST:
         pd.concat(
             [df_onlap, onlaplogged, onlappowered, locations],
             axis=1,
-            join_axes=[df_onlap.index],
+
         )
+        .reindex(df_onlap.index)
         .dropna()
         .replace(-np.inf, 0)
     )
@@ -341,8 +340,8 @@ for i in NEIGHBORS_TO_TEST:
         pd.concat(
             [df_horizontal, horizlogged, horizpowered, locations],
             axis=1,
-            join_axes=[df_horizontal.index],
         )
+        .reindex(df_horizontal.index)
         .dropna()
         .replace(-np.inf, 0)
     )
@@ -368,3 +367,6 @@ for i in NEIGHBORS_TO_TEST:
     print(f"saving the training data for {no_of_neighbors}")
     dataset.to_csv(str(no_of_neighbors) + "neighbors.csv")
     print(f"Done with {no_of_neighbors} neighbors")
+# -
+
+

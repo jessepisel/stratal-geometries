@@ -21,3 +21,4 @@ dependencies:
     - pip:
       - sklearn
       - glob3
+      - descartes

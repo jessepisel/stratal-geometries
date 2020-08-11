@@ -16,9 +16,7 @@
 # # Grid Search for optimal parameters
 # This notebook conducts a grid search for the optimal KNN parameters along with the optimal number of adjacent wells in the training dataset.
 
-# +
 import glob
-import warnings
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -26,13 +24,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import GridSearchCV
 from sklearn.neighbors import KNeighborsClassifier
-
 sns.set()
 
-
-warnings.filterwarnings("ignore")
 # %matplotlib inline
-# -
 
 # point this to the directory with the generated training data
 # with the different number of adjacent wells
@@ -84,3 +78,5 @@ plt.ylabel("Accuracy")
 plt.plot(NUM_NEIGHBORS, MEAN_ACCURACY)
 plt.xlabel("number of adjacent wells")
 plt.ylabel("mean cross-validated accuracy")
+
+
