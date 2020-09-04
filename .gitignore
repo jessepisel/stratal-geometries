@@ -1,2 +1,3 @@
 # Ignore formatted python files
 *.py
+*-checkpoint.ipynb
