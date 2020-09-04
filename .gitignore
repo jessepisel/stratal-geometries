@@ -1,2 +1,2 @@
 # Ignore formatted python files
-.py
+*.py
