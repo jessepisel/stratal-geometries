@@ -2,7 +2,7 @@
 
 [![DOI](https://zenodo.org/badge/129456583.svg)](https://zenodo.org/badge/latestdoi/129456583)
 
-![Classification T-SNE embedding](https://github.com/jessepisel/stratal-geometries/blob/master/repo_base.png)
+![Classification T-SNE embedding](https://github.com/jessepisel/stratal-geometries/blob/master/repo_base.PNG)
 This repository contains jupyter notebooks to create basin-scale stratigraphic geometries from a conceptual geometric model,
 train a K-nearest neighbor classifier on the dataset, and perform a grid search to determine optimal parameters for the model.
 
